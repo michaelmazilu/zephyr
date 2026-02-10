@@ -102,17 +102,17 @@ Planned integrations include:
 - ECMWF ensemble probabilities
 - HRRR radar nowcasts
 - Emergency bulletins and alerts
-- Market pricing feeds (Kalshi / Polymarket)
+- Market pricing feeds (Polymarket)
 
 ---
 
 ## Roadmap
 
 - [x] NOAA ingestion + ensemble probability computation (prototype for one test event)
-- [ ] Market price scraper + implied probability engine
-- [ ] Edge detection + trade signal generator
-- [ ] Backtesting framework
-- [ ] Automated execution + bankroll rules
+- [x] Market price scraper + implied probability engine (Polymarket public quote pull)
+- [x] Edge detection + trade signal generator
+- [x] Backtesting framework (CSV-driven)
+- [x] Automated execution + bankroll rules (paper-order logging + fractional Kelly + hard cap)
 
 ---
 
@@ -132,6 +132,9 @@ Default test event:
 
 - NYC max 2m temperature tomorrow (America/New_York) >= 85F
 
+Precipitation events are also supported in the pipeline (e.g., total precip >= 0.1 in),
+and can be logged via `scripts/log_snapshots.py` when Polymarket markets match the filters.
+
 Run:
 
 ```bash
@@ -142,6 +145,103 @@ Example with custom threshold:
 
 ```bash
 python3 scripts/gefs_event_probability.py --threshold-f 30
+```
+
+---
+
+## Generate A Trade Signal
+
+Build a forecast probability from GEFS and compare it to a market implied probability.
+
+Option A (manual market probability):
+
+```bash
+python3 scripts/generate_signal.py --market-probability 0.42
+```
+
+Option B (live Polymarket quote by market slug):
+
+```bash
+python3 scripts/generate_signal.py --polymarket-slug your-market-slug
+```
+
+Precipitation example:
+
+```bash
+python3 scripts/generate_signal.py \
+  --event-type precip_total \
+  --threshold-in 0.1 \
+  --polymarket-slug your-market-slug
+```
+
+Paper-log orders when a trade is triggered:
+
+```bash
+python3 scripts/generate_signal.py \
+  --market-probability 0.42 \
+  --paper-ledger data/paper_orders.csv
+```
+
+---
+
+## Run A Backtest
+
+Run the built-in sample backtest:
+
+```bash
+python3 scripts/run_backtest.py
+```
+
+Show per-trade detail:
+
+```bash
+python3 scripts/run_backtest.py --show-trades
+```
+
+Use your own CSV:
+
+```bash
+python3 scripts/run_backtest.py --csv path/to/your_backtest.csv
+```
+
+CSV columns:
+
+- `event_id`
+- `contract_ticker`
+- `forecast_probability`
+- `market_probability`
+- `outcome` (`1` for YES outcome, `0` for NO outcome)
+- optional: `timestamp`
+
+---
+
+## Log Recent Snapshots (SQLite)
+
+Discover Polymarket weather/temperature markets (filtered by volume, city, and date window),
+compute GEFS probabilities, and store snapshots in SQLite:
+
+```bash
+python3 scripts/log_snapshots.py --db data/zephyr.sqlite
+```
+
+Use `data/market_universe.json` to tune cities, volume, and date window.
+
+Record a resolved outcome:
+
+```bash
+python3 scripts/record_outcome.py --market-slug your-market-slug --outcome 1
+```
+
+Export joined snapshots + outcomes for backtesting:
+
+```bash
+python3 scripts/build_backtest_from_db.py --db data/zephyr.sqlite
+```
+
+Then run the backtest:
+
+```bash
+python3 scripts/run_backtest.py --csv data/backtest_from_db.csv
 ```
 
 ---

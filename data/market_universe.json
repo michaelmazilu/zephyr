@@ -1,0 +1,35 @@
+{
+  "min_volume_usd": 50000,
+  "window_days_min": 7,
+  "window_days_max": 14,
+  "max_markets": 25,
+  "yes_label_default": "Yes",
+  "supported_event_types": ["temp_max", "precip_total"],
+  "cities": [
+    {
+      "label": "NYC",
+      "name": "New York City",
+      "aliases": ["NYC", "New York City", "New York"],
+      "lat": 40.7128,
+      "lon": -74.006,
+      "timezone": "America/New_York"
+    },
+    {
+      "label": "CHI",
+      "name": "Chicago",
+      "aliases": ["Chicago", "CHI"],
+      "lat": 41.8781,
+      "lon": -87.6298,
+      "timezone": "America/Chicago"
+    },
+    {
+      "label": "LA",
+      "name": "Los Angeles",
+      "aliases": ["Los Angeles", "LA", "L.A."],
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "timezone": "America/Los_Angeles"
+    }
+  ],
+  "market_overrides": []
+}
